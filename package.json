@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf dist/*",
     "tsc": "tsc",
-    "assets": "cp -R src/client/index.html src/client/css src/client/img dist/client",
+    "assets": "cp -R src/client/index.html src/client/css src/client/img src/client/assets dist/client",
     "parcel": "parcel build src/client/game.ts -d dist/client",
     "build": "npm-run-all clean tsc assets parcel",
     "start": "node dist/server/server.js",
