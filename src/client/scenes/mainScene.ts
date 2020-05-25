@@ -1,18 +1,14 @@
-import { Player } from "../../shared/model/player"
+import Socket from '../api/socket'
 
-class Coords {
-  x: integer
-  y: integer
-  z: integer
-}
-
-export default class MainScene extends Phaser.Scene {
-  players: Player[]
-  sprite: Phaser.Physics.Arcade.Sprite
-
+export default class MainScene extends Phaser.Scene implements UpdateListener {
+  socket: Socket
+  prev_location: [integer, integer] = [0, 0]
+  players: Map<string, Phaser.Physics.Arcade.Sprite> = new Map()
+  platforms: Phaser.Physics.Arcade.StaticGroup
 
   constructor() {
     super({ key: 'MainScene' })
+    this.socket = new Socket(this)
   }
 
   preload() {
@@ -31,18 +27,14 @@ export default class MainScene extends Phaser.Scene {
     this.add.image(400, 300, 'sky');
     this.add.image(400, 300, 'star');
 
-    let platforms = this.physics.add.staticGroup();
+    this.platforms = this.physics.add.staticGroup();
 
-    platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+    this.platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+    this.platforms.create(600, 400, 'ground');
+    this.platforms.create(50, 250, 'ground');
+    this.platforms.create(750, 220, 'ground');
 
-    platforms.create(600, 400, 'ground');
-    platforms.create(50, 250, 'ground');
-    platforms.create(750, 220, 'ground');
-
-    this.sprite = this.physics.add.sprite(100, 450, 'dude');
-
-    this.sprite.setBounce(0.2);
-    this.sprite.setCollideWorldBounds(true);
+    this.createPlayer('self')
 
     this.anims.create({
       key: 'left',
@@ -63,27 +55,57 @@ export default class MainScene extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     });
+  }
 
-    this.physics.add.collider(this.sprite, platforms);
+  createPlayer(id: string) {
+    let player = this.physics.add.sprite(100, 450, 'dude');
+    this.players.set(id, player)
 
+    player.setBounce(0.2);
+    player.setCollideWorldBounds(true);
+    this.physics.add.collider(player, this.platforms);
+    return player
   }
 
   update() {
     let cursors = this.input.keyboard.createCursorKeys();
+    let sprite = this.players.get('self')
 
     if (cursors.left.isDown) {
-      this.sprite.setVelocityX(-160);
-      this.sprite.anims.play('left', true);
+      sprite.setVelocityX(-160);
+      sprite.anims.play('left', true);
     } else if (cursors.right.isDown) {
-      this.sprite.setVelocityX(160);
-      this.sprite.anims.play('right', true);
+      sprite.setVelocityX(160);
+      sprite.anims.play('right', true);
     } else {
-      this.sprite.setVelocityX(0);
-      this.sprite.anims.play('turn');
+      sprite.setVelocityX(0);
+      sprite.anims.play('turn');
     }
 
-    if (cursors.up.isDown && this.sprite.body.touching.down) {
-      this.sprite.setVelocityY(-330);
+    if (cursors.up.isDown && sprite.body.touching.down) {
+      sprite.setVelocityY(-330);
     }
+
+    if (sprite.x != this.prev_location[0] || sprite.y != this.prev_location[1]) {
+      this.socket.updatePos(sprite.x, sprite.y)
+      this.prev_location = [sprite.x, sprite.y]
+    }
+  }
+
+  // callbacks
+
+  updateLocation(player: string, x: integer, y: integer) {
+    console.log("update position of " + player)
+    console.log(this.players)
+    if (!this.players.has(player)) {
+      this.newPlayer(player)
+    }
+    this.players.get(player).x = x
+    this.players.get(player).y = y
+  }
+
+  newPlayer(player: string) {
+    console.log("new player joined! " + player)
+    this.createPlayer(player)
   }
 }
