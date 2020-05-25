@@ -8,17 +8,18 @@ class Coords {
 
 export default class MainScene extends Phaser.Scene {
   players: Player[]
-  sprites: Phaser.Physics.Arcade.Sprite[]
+  sprite: Phaser.Physics.Arcade.Sprite
+
 
   constructor() {
     super({ key: 'MainScene' })
   }
 
   preload() {
-    this.load.image('sky', '../assets/sky.png');
-    this.load.image('ground', '../assets/platform.png');
-    this.load.image('star', '../assets/star.png');
-    this.load.image('bomb', '../assets/bomb.png');
+    this.load.image('sky', 'assets/sky.png');
+    this.load.image('ground', 'assets/platform.png');
+    this.load.image('star', 'assets/star.png');
+    this.load.image('bomb', 'assets/bomb.png');
 
     this.load.spritesheet('dude',
       'assets/dude.png',
@@ -38,10 +39,10 @@ export default class MainScene extends Phaser.Scene {
     platforms.create(50, 250, 'ground');
     platforms.create(750, 220, 'ground');
 
-    let player = this.physics.add.sprite(100, 450, 'dude');
+    this.sprite = this.physics.add.sprite(100, 450, 'dude');
 
-    player.setBounce(0.2);
-    player.setCollideWorldBounds(true);
+    this.sprite.setBounce(0.2);
+    this.sprite.setCollideWorldBounds(true);
 
     this.anims.create({
       key: 'left',
@@ -64,11 +65,35 @@ export default class MainScene extends Phaser.Scene {
     });
     // player.body.setGravityY(300)
 
-    this.physics.add.collider(player, platforms);
+    this.physics.add.collider(this.sprite, platforms);
 
   }
 
   update() {
+    let cursors = this.input.keyboard.createCursorKeys();
 
+    if (cursors.left.isDown)
+    {
+      this.sprite.setVelocityX(-160);
+
+      this.sprite.anims.play('left', true);
+    }
+    else if (cursors.right.isDown)
+    {
+      this.sprite.setVelocityX(160);
+
+      this.sprite.anims.play('right', true);
+    }
+    else
+    {
+      this.sprite.setVelocityX(0);
+
+      this.sprite.anims.play('turn');
+    }
+
+    if (cursors.up.isDown && this.sprite.body.touching.down)
+    {
+      this.sprite.setVelocityY(-330);
+    }
   }
 }
