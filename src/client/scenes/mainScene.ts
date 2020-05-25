@@ -63,7 +63,6 @@ export default class MainScene extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     });
-    // player.body.setGravityY(300)
 
     this.physics.add.collider(this.sprite, platforms);
 
@@ -72,27 +71,18 @@ export default class MainScene extends Phaser.Scene {
   update() {
     let cursors = this.input.keyboard.createCursorKeys();
 
-    if (cursors.left.isDown)
-    {
+    if (cursors.left.isDown) {
       this.sprite.setVelocityX(-160);
-
       this.sprite.anims.play('left', true);
-    }
-    else if (cursors.right.isDown)
-    {
+    } else if (cursors.right.isDown) {
       this.sprite.setVelocityX(160);
-
       this.sprite.anims.play('right', true);
-    }
-    else
-    {
+    } else {
       this.sprite.setVelocityX(0);
-
       this.sprite.anims.play('turn');
     }
 
-    if (cursors.up.isDown && this.sprite.body.touching.down)
-    {
+    if (cursors.up.isDown && this.sprite.body.touching.down) {
       this.sprite.setVelocityY(-330);
     }
   }
