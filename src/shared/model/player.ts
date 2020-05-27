@@ -6,11 +6,15 @@ export class Player {
   private x: integer
   private y: integer
 
-  constructor() {
-    this.uuid = uuid()
+  constructor(id?: string, x = 0, y = 0) {
+    if (id == undefined) {
+      this.uuid = uuid()
+    } else {
+      this.uuid = id
+    }
     this.name = ""
-    this.x = 0
-    this.y = 0
+    this.x = x
+    this.y = y
   }
 
   getName(): string {
@@ -23,5 +27,10 @@ export class Player {
 
   getLocation(): [integer, integer] {
     return [this.x, this.y]
+  }
+
+  setLocation(x: integer, y: integer) {
+    this.x = x
+    this.y = y
   }
 }
