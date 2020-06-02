@@ -1,7 +1,7 @@
 {
-  "name": "typescript-express-phaser-socketio-starter",
+  "name": "socket-io-game",
   "version": "1.0.0",
-  "description": "A starter pack to quickly develop multiplayer games using Typescript, Express, SocketIO and Phaser",
+  "description": "A proof-of-concept socket-io multiplayer game",
   "main": "index.html",
   "scripts": {
     "clean": "rimraf dist/*",
@@ -12,7 +12,7 @@
     "start": "node dist/server/server.js",
     "dev": "nodemon --watch src -e ts --exec npm-run-all build start"
   },
-  "author": "Sebastian Klier",
+  "author": "Kyle Into",
   "license": "MIT",
   "dependencies": {
     "@types/socket.io-client": "^1.4.33",
