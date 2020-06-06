@@ -1,5 +1,5 @@
 import "socket.io-client"
-import { encodeLocation, decodeLocations } from "../../shared/util/transcoding"
+import { encodeLocation, decodeLocations, decodePlayerUpdate } from "../../shared/util/transcoding"
 import { Player } from "../../shared/model/player"
 
 // Class for communication with server
@@ -15,7 +15,7 @@ export default class Socket {
         l.updateLocation(player.getId(), location[0], location[1])
       });
     })
-    this.socket.on("new player", (data: string) => l.newPlayer(data))
+    this.socket.on("modified players", (data: string) => l.updatePlayer(...decodePlayerUpdate(data)))
   }
 
   updatePos(x: integer, y: integer) {

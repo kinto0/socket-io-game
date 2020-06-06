@@ -6,16 +6,15 @@ import { Player } from "../shared/model/player"
 export default class Socket {
   socket: SocketIOClient.Socket
 
-  constructor(updateListener: (player: string, x: integer, y: integer) => any, newPlayerListener: (player: string) => any) {
+  constructor(updateListener: (player: string, x: integer, y: integer) => any, playersModifiedListener: (remove: boolean, player: string) => any) {
     this.socket = io("http://localhost:9001")
 
     this.socket.on("update location", (data: string) => {
       decodeLocations(data).forEach((player: Player) => {
-        var location: [integer, integer] = player.getLocation()
-        updateListener(player.getId(), location[0], location[1])
+        updateListener(player.getId(), ...player.getLocation())
       });
     })
-    this.socket.on("new player", newPlayerListener)
+    this.socket.on("modified player", playersModifiedListener)
   }
 
   updatePos(x: integer, y: integer) {

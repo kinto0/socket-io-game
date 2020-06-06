@@ -30,3 +30,14 @@ export function decodeLocations(encoded: string): Player[] {
   console.log(result)
   return result
 }
+
+export function decodePlayerUpdate(encoded: string): [boolean, string] {
+  if (encoded.substr(0, 1) == '0') {
+    return [true, encoded.substr(1)]
+  }
+  return [false, encoded.substr(1)]
+}
+
+export function encodePlayerUpdate(remove: boolean, name: string): string {
+  return remove + name
+}

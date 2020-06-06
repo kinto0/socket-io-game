@@ -1,6 +1,6 @@
 import * as express from "express"
 import * as path from "path"
-import { decodeLocation, encodeLocations } from "../shared/util/transcoding"
+import { decodeLocation, encodeLocations, encodePlayerUpdate } from "../shared/util/transcoding"
 import { Player } from "../shared/model/player"
 import { ServerGame } from "./servergame"
 
@@ -9,7 +9,7 @@ app.set("port", process.env.PORT || 9001)
 
 let http = require("http").Server(app)
 let io = require("socket.io")(http)
-let game = new ServerGame(addPlayer, updateLocation)
+let game = new ServerGame(updatePlayer, updateLocation)
 
 app.use(express.static(path.join(__dirname, "../client")))
 
@@ -29,9 +29,7 @@ io.on("connection", function (socket: any) {
   })
 
   socket.on("message", function (data: string) {
-    console.log("message! " + data)
-    let location: [integer, integer] = decodeLocation(data)
-    game.updateLocation(player.getId(), location[0], location[1]);
+    game.updateLocation(player.getId(), ...decodeLocation(data));
   })
 })
 
@@ -45,6 +43,6 @@ function updateLocation(player: string, x: integer, y: integer) {
   io.emit("update location", encodeLocations([p]))
 }
 
-function addPlayer(player: string) {
-  io.emit("new player", player)
+function updatePlayer(remove: boolean, player: string) {
+  io.emit("modified player", encodePlayerUpdate(remove, player))
 }

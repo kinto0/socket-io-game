@@ -35,6 +35,7 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     this.platforms.create(750, 220, 'ground');
 
     this.createPlayer('self')
+    this.players.get('self').setVisible(false)
 
     this.anims.create({
       key: 'left',
@@ -65,6 +66,14 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     player.setCollideWorldBounds(true);
     this.physics.add.collider(player, this.platforms);
     return player
+  }
+
+  //todo: this doesn't remove sprite from screen
+  removePlayer(id: string) {
+    this.players.get(id).setVisible(false)
+    this.players.get(id).update()
+    this.players.get(id).destroy()
+    this.players.delete(id)
   }
 
   update() {
@@ -98,14 +107,28 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     console.log("update position of " + player)
     console.log(this.players)
     if (!this.players.has(player)) {
-      this.newPlayer(player)
+      this.updatePlayer(false, player)
     }
-    this.players.get(player).x = x
-    this.players.get(player).y = y
+    let dx = x - this.players.get(player).x
+    let sprite = this.players.get(player)
+    if (dx < 0) {
+      sprite.anims.play('left', true)
+    } else if (dx > 0) {
+      sprite.anims.play('right', true)
+    } else {
+      sprite.anims.play('turn')
+    }
+    sprite.x = x
+    sprite.y = y
   }
 
-  newPlayer(player: string) {
-    console.log("new player joined! " + player)
-    this.createPlayer(player)
+  updatePlayer(remove: boolean, player: string) {
+    if (remove) {
+      console.log("player disconnected! " + player)
+      this.removePlayer(player)
+    } else {
+      console.log("new player joined! " + player)
+      this.createPlayer(player)
+    }
   }
 }
