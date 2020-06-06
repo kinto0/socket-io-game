@@ -22,22 +22,20 @@ export function encodeLocations(players: Player[]): string {
 
 export function decodeLocations(encoded: string): Player[] {
   let result: Player[] = []
-  console.log(encoded)
   encoded.split("|").forEach(group => {
     let player = group.split("/")
     result.push(new Player(player[0], +player[1], +player[2]))
   });
-  console.log(result)
   return result
 }
 
 export function decodePlayerUpdate(encoded: string): [boolean, string] {
-  if (encoded.substr(0, 1) == '0') {
+  if (encoded.substr(0, 1) == '1') {
     return [true, encoded.substr(1)]
   }
   return [false, encoded.substr(1)]
 }
 
 export function encodePlayerUpdate(remove: boolean, name: string): string {
-  return remove + name
+  return Number(remove) + name
 }

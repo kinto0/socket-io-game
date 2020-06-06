@@ -5,10 +5,10 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
   prev_location: [integer, integer] = [0, 0]
   players: Map<string, Phaser.Physics.Arcade.Sprite> = new Map()
   platforms: Phaser.Physics.Arcade.StaticGroup
+  controlling_id: string
 
   constructor() {
     super({ key: 'MainScene' })
-    this.socket = new Socket(this)
   }
 
   preload() {
@@ -24,18 +24,15 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
   }
 
   create() {
-    this.add.image(400, 300, 'sky');
-    this.add.image(400, 300, 'star');
+    this.add.image(400, 300, 'sky')
+    this.add.image(400, 300, 'star')
 
-    this.platforms = this.physics.add.staticGroup();
+    this.platforms = this.physics.add.staticGroup()
 
-    this.platforms.create(400, 568, 'ground').setScale(2).refreshBody();
-    this.platforms.create(600, 400, 'ground');
-    this.platforms.create(50, 250, 'ground');
-    this.platforms.create(750, 220, 'ground');
-
-    this.createPlayer('self')
-    this.players.get('self').setVisible(false)
+    this.platforms.create(400, 568, 'ground').setScale(2).refreshBody()
+    this.platforms.create(600, 400, 'ground')
+    this.platforms.create(50, 250, 'ground')
+    this.platforms.create(750, 220, 'ground')
 
     this.anims.create({
       key: 'left',
@@ -56,10 +53,14 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
       frameRate: 10,
       repeat: -1
     });
+    this.socket = new Socket(this)
   }
 
   createPlayer(id: string) {
-    let player = this.physics.add.sprite(100, 450, 'dude');
+    if (this.players.has(id)) {
+      return
+    }
+    let player = this.physics.add.sprite(100, 450, 'dude')
     this.players.set(id, player)
 
     player.setBounce(0.2);
@@ -68,46 +69,47 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     return player
   }
 
-  //todo: this doesn't remove sprite from screen
   removePlayer(id: string) {
-    this.players.get(id).setVisible(false)
-    this.players.get(id).update()
     this.players.get(id).destroy()
     this.players.delete(id)
   }
 
   update() {
-    let cursors = this.input.keyboard.createCursorKeys();
-    let sprite = this.players.get('self')
+    let cursors = this.input.keyboard.createCursorKeys()
+    if (this.controlling_id) {
+      let sprite = this.players.get(this.controlling_id)
 
-    if (cursors.left.isDown) {
-      sprite.setVelocityX(-160);
-      sprite.anims.play('left', true);
-    } else if (cursors.right.isDown) {
-      sprite.setVelocityX(160);
-      sprite.anims.play('right', true);
-    } else {
-      sprite.setVelocityX(0);
-      sprite.anims.play('turn');
-    }
+      if (cursors.left.isDown) {
+        sprite.setVelocityX(-160)
+        sprite.anims.play('left', true)
+      } else if (cursors.right.isDown) {
+        sprite.setVelocityX(160);
+        sprite.anims.play('right', true)
+      } else {
+        sprite.setVelocityX(0)
+        sprite.anims.play('turn')
+      }
 
-    if (cursors.up.isDown && sprite.body.touching.down) {
-      sprite.setVelocityY(-330);
-    }
+      if (cursors.up.isDown && sprite.body.touching.down) {
+        sprite.setVelocityY(-330)
+      }
 
-    if (sprite.x != this.prev_location[0] || sprite.y != this.prev_location[1]) {
-      this.socket.updatePos(sprite.x, sprite.y)
-      this.prev_location = [sprite.x, sprite.y]
+      if (sprite.x != this.prev_location[0] || sprite.y != this.prev_location[1]) {
+        this.socket.updatePos(sprite.x, sprite.y)
+        this.prev_location = [sprite.x, sprite.y]
+      }
     }
   }
 
   // callbacks
-
   updateLocation(player: string, x: integer, y: integer) {
     console.log("update position of " + player)
     console.log(this.players)
+    if (player == this.controlling_id) {
+      return
+    }
     if (!this.players.has(player)) {
-      this.updatePlayer(false, player)
+      this.createPlayer(player)
     }
     let dx = x - this.players.get(player).x
     let sprite = this.players.get(player)
@@ -130,5 +132,10 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
       console.log("new player joined! " + player)
       this.createPlayer(player)
     }
+  }
+
+  onJoined(player: string) {
+    this.createPlayer(player)
+    this.controlling_id = player
   }
 }

@@ -21,11 +21,18 @@ export class ServerGame {
     this.modifiedPlayerListener(true, player)
   }
 
+  getPlayers(): Player[] {
+    return Array.from(this.players.values())
+  }
+
   getLocation(player: string): [integer, integer] {
     return this.players.get(player).getLocation()
   }
 
   updateLocation(player: string, x: integer, y: integer): void {
+    if (!this.players.has(player)) {
+      return
+    }
     this.players.get(player).setLocation(x, y)
     this.updateLocationListener(player, x, y)
   }

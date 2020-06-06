@@ -2,6 +2,7 @@ import * as express from "express"
 import * as path from "path"
 import { decodeLocation, encodeLocations, encodePlayerUpdate } from "../shared/util/transcoding"
 import { Player } from "../shared/model/player"
+import { EmitEvent } from "../shared/api/events"
 import { ServerGame } from "./servergame"
 
 const app = express()
@@ -20,6 +21,8 @@ app.get("/", (req: any, res: any) => {
 io.on("connection", function (socket: any) {
   let player = new Player()
   game.addPlayer(player.getId())
+  socket.emit(EmitEvent.PLAYER_JOIN, player.getId())
+  socket.emit(EmitEvent.UPDATE_LOCATION, encodeLocations(game.getPlayers()))
 
   console.log("Client " + player.getId() + " connected!")
 
@@ -40,9 +43,9 @@ http.listen(9001, function () {
 function updateLocation(player: string, x: integer, y: integer) {
   let p: Player = new Player(player)
   p.setLocation(x, y)
-  io.emit("update location", encodeLocations([p]))
+  io.emit(EmitEvent.UPDATE_LOCATION, encodeLocations([p]))
 }
 
 function updatePlayer(remove: boolean, player: string) {
-  io.emit("modified player", encodePlayerUpdate(remove, player))
+  io.emit(EmitEvent.MODIFIED_PLAYER, encodePlayerUpdate(remove, player))
 }
