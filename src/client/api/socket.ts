@@ -8,7 +8,7 @@ export default class Socket {
   socket: SocketIOClient.Socket
 
   constructor(l: UpdateListener) {
-    this.socket = io("http://localhost:9001")
+    this.socket = io()
 
     this.socket.on(EmitEvent.UPDATE_LOCATION, (data: string) => {
       decodeLocations(data).forEach((player: Player) => {
@@ -21,7 +21,6 @@ export default class Socket {
   }
 
   updatePos(x: integer, y: integer) {
-    console.log("updating position: (" + x + ", " + y + ")")
     this.socket.send(encodeLocation(x, y))
   }
 }
