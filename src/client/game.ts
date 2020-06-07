@@ -1,5 +1,6 @@
 import 'phaser'
 import MainScene from './scenes/mainScene'
+import threeDScene from './scenes/threeDScene'
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -13,6 +14,17 @@ const config: Phaser.Types.Core.GameConfig = {
     }
   },
   scene: [MainScene],
+}
+
+const threeDConfig: Phaser.Types.Core.GameConfig = {
+  type: Phaser.WEBGL,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: window.innerWidth * Math.max(1, window.devicePixelRatio / 2),
+    height: window.innerHeight * Math.max(1, window.devicePixelRatio / 2)
+  },
+  scene: [threeDScene]
 }
 
 export class Game extends Phaser.Game {
