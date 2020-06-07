@@ -103,8 +103,6 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
 
   // callbacks
   updateLocation(player: string, x: integer, y: integer) {
-    console.log("update position of " + player)
-    console.log(this.players)
     if (player == this.controlling_id) {
       return
     }
