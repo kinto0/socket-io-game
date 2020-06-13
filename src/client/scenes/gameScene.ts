@@ -1,29 +1,50 @@
 import Socket from '../api/socket'
 
-export default class MainScene extends Phaser.Scene implements UpdateListener {
+const DUDE_W: integer = 32
+const DUDE_H: integer = 48
+
+export default class GameScene extends Phaser.Scene implements UpdateListener {
   socket: Socket
+  menu: Phaser.GameObjects.DOMElement
+  name_input: HTMLInputElement
   prev_location: [integer, integer] = [0, 0]
   players: Map<string, Phaser.GameObjects.Container> = new Map()
   platforms: Phaser.Physics.Arcade.StaticGroup
   controlling_id: string
 
   constructor() {
-    super({ key: 'MainScene' })
+    super({ key: 'GameScene' })
   }
 
   preload() {
-    this.load.image('sky', 'assets/sky.png');
-    this.load.image('ground', 'assets/platform.png');
-    this.load.image('star', 'assets/star.png');
-    this.load.image('bomb', 'assets/bomb.png');
+    this.load.image('sky', 'assets/sky.png')
+    this.load.image('ground', 'assets/platform.png')
+    this.load.image('star', 'assets/star.png')
+    this.load.image('bomb', 'assets/bomb.png')
 
     this.load.spritesheet('dude',
       'assets/dude.png',
-      { frameWidth: 32, frameHeight: 48 }
-    );
+      { frameWidth: DUDE_W, frameHeight: DUDE_H }
+    )
+
+    this.name_input = document.createElement('input')
+    this.menu = this.add.dom(400, 200, this.name_input)
   }
 
   create() {
+    this.createScene()
+    this.socket = new Socket(this)
+    this.menu.addListener('keyup')
+    this.menu.on('keyup', (event: any) => {
+      if (event.keyCode === 13) {
+        this.socket.join(this.name_input.value)
+        this.menu.setVisible(false)
+        this.menu.removeAllListeners()
+      }
+    })
+  }
+
+  createScene() {
     this.add.image(400, 300, 'sky')
     this.add.image(400, 300, 'star')
 
@@ -53,7 +74,6 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
       frameRate: 10,
       repeat: -1
     });
-    this.socket = new Socket(this)
   }
 
   createPlayer(id: string, name: string) {
@@ -64,7 +84,7 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     let text = this.add.text(0, -50, name)
 
     let player = this.add.container(100, 450, [sprite, text])
-    player.setSize(32, 48)
+    player.setSize(DUDE_W, DUDE_H)
 
     this.players.set(id, player)
 
@@ -132,13 +152,13 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     player.y = y
   }
 
-  updatePlayer(remove: boolean, player: string) {
+  updatePlayer(remove: boolean, id: string, name: string) {
     if (remove) {
-      console.log("player disconnected! " + player)
-      this.removePlayer(player)
+      console.log("player disconnected! " + id)
+      this.removePlayer(id)
     } else {
-      console.log("new player joined! " + player)
-      this.createPlayer(player, "updateplayer")
+      console.log("new player joined! " + id)
+      this.createPlayer(id, name)
     }
   }
 

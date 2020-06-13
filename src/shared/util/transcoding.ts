@@ -14,10 +14,9 @@ export function encodeLocations(players: Player[]): string {
   let result: string[] = []
   players.forEach((player) => {
     let location = player.getLocation()
-    result.push("|" + player.getId() + "/" + location[0].toFixed(1) + "/" + location[1].toFixed(1))
+    result.push(player.getId() + "/" + location[0].toFixed(1) + "/" + location[1].toFixed(1))
   })
-  result[0] = result[0].substr(1)
-  return result.join("")
+  return result.join("|")
 }
 
 export function decodeLocations(encoded: string): Player[] {

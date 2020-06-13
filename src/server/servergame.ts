@@ -17,8 +17,10 @@ export class ServerGame {
   }
 
   removePlayer(id: string): any {
-    this.modifiedPlayerListener(true, id, this.players.get(id).getName())
-    this.players.delete(id)
+    if (this.players.has(id)) {
+      this.modifiedPlayerListener(true, id, this.players.get(id).getName())
+      this.players.delete(id)
+    }
   }
 
   getPlayers(): Player[] {

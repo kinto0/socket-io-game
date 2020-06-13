@@ -20,23 +20,27 @@ app.get("/", (req: any, res: any) => {
 
 io.on("connection", function (socket: any) {
   let player = new Player()
-  game.addPlayer(player.getId(), "NAME")
   socket.emit(EmitEvent.PLAYER_JOIN, player.getId())
   let players = game.getPlayers()
   players.forEach((player: Player) => {
+    console.log(player)
     socket.emit(EmitEvent.MODIFIED_PLAYER, encodePlayerUpdate(false, player.getId(), player.getName()))
   })
   socket.emit(EmitEvent.UPDATE_LOCATION, encodeLocations(players))
 
   console.log("Client " + player.getId() + " connected!")
 
+  socket.on("join", function (name: string) {
+    game.addPlayer(player.getId(), name)
+
+    socket.on("message", function (data: string) {
+      game.updateLocation(player.getId(), ...decodeLocation(data));
+    })
+  });
+
   socket.on("disconnect", function (reason: any) {
     console.log(player.getId() + " disconnected")
     game.removePlayer(player.getId())
-  })
-
-  socket.on("message", function (data: string) {
-    game.updateLocation(player.getId(), ...decodeLocation(data));
   })
 })
 
