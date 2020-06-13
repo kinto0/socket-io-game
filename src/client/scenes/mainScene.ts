@@ -3,7 +3,7 @@ import Socket from '../api/socket'
 export default class MainScene extends Phaser.Scene implements UpdateListener {
   socket: Socket
   prev_location: [integer, integer] = [0, 0]
-  players: Map<string, Phaser.Physics.Arcade.Sprite> = new Map()
+  players: Map<string, Phaser.GameObjects.Container> = new Map()
   platforms: Phaser.Physics.Arcade.StaticGroup
   controlling_id: string
 
@@ -56,16 +56,23 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     this.socket = new Socket(this)
   }
 
-  createPlayer(id: string) {
+  createPlayer(id: string, name: string) {
     if (this.players.has(id)) {
       return
     }
-    let player = this.physics.add.sprite(100, 450, 'dude')
+    let sprite = this.add.sprite(0, 0, 'dude')
+    let text = this.add.text(0, -50, name)
+
+    let player = this.add.container(100, 450, [sprite, text])
+    player.setSize(32, 48)
+
     this.players.set(id, player)
 
-    player.setBounce(0.2);
-    player.setCollideWorldBounds(true);
-    this.physics.add.collider(player, this.platforms);
+    this.physics.world.enable(player)
+    let body = player.body as Phaser.Physics.Arcade.Body
+
+    body.setBounce(0.2, 0.2).setCollideWorldBounds(true)
+    this.physics.add.collider(player, this.platforms)
     return player
   }
 
@@ -77,40 +84,43 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
   update() {
     let cursors = this.input.keyboard.createCursorKeys()
     if (this.controlling_id) {
-      let sprite = this.players.get(this.controlling_id)
+      let player = this.players.get(this.controlling_id)
+      let body = player.body as Phaser.Physics.Arcade.Body
+      let sprite = player.first as Phaser.Physics.Arcade.Sprite
 
       if (cursors.left.isDown) {
-        sprite.setVelocityX(-160)
-        sprite.anims.play('left', true)
+        body.setVelocityX(-160)
+        sprite.play('left', true)
       } else if (cursors.right.isDown) {
-        sprite.setVelocityX(160);
+        body.setVelocityX(160);
         sprite.anims.play('right', true)
       } else {
-        sprite.setVelocityX(0)
+        body.setVelocityX(0)
         sprite.anims.play('turn')
       }
 
-      if (cursors.up.isDown && sprite.body.touching.down) {
-        sprite.setVelocityY(-330)
+      if (cursors.up.isDown && body.touching.down) {
+        body.setVelocityY(-330)
       }
 
-      if (sprite.x != this.prev_location[0] || sprite.y != this.prev_location[1]) {
-        this.socket.updatePos(sprite.x, sprite.y)
-        this.prev_location = [sprite.x, sprite.y]
+      if (player.x != this.prev_location[0] || player.y != this.prev_location[1]) {
+        this.socket.updatePos(player.x, player.y)
+        this.prev_location = [player.x, player.y]
       }
     }
   }
 
   // callbacks
-  updateLocation(player: string, x: integer, y: integer) {
-    if (player == this.controlling_id) {
+  updateLocation(id: string, x: integer, y: integer) {
+    if (id == this.controlling_id) {
       return
     }
-    if (!this.players.has(player)) {
-      this.createPlayer(player)
+    if (!this.players.has(id)) {
+      return
     }
-    let dx = x - this.players.get(player).x
-    let sprite = this.players.get(player)
+    let dx = x - this.players.get(id).x
+    let player = this.players.get(id)
+    let sprite = player.first as Phaser.Physics.Arcade.Sprite
     if (dx < 0) {
       sprite.anims.play('left', true)
     } else if (dx > 0) {
@@ -118,8 +128,8 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
     } else {
       sprite.anims.play('turn')
     }
-    sprite.x = x
-    sprite.y = y
+    player.x = x
+    player.y = y
   }
 
   updatePlayer(remove: boolean, player: string) {
@@ -128,12 +138,12 @@ export default class MainScene extends Phaser.Scene implements UpdateListener {
       this.removePlayer(player)
     } else {
       console.log("new player joined! " + player)
-      this.createPlayer(player)
+      this.createPlayer(player, "updateplayer")
     }
   }
 
   onJoined(player: string) {
-    this.createPlayer(player)
+    this.createPlayer(player, "You")
     this.controlling_id = player
   }
 }

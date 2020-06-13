@@ -6,13 +6,13 @@ export class Player {
   private x: integer
   private y: integer
 
-  constructor(id?: string, x = 0, y = 0) {
+  constructor(id?: string, name?: string, x = 0, y = 0) {
     if (id == undefined) {
       this.uuid = uuid()
     } else {
       this.uuid = id
     }
-    this.name = ""
+    this.name = name
     this.x = x
     this.y = y
   }
