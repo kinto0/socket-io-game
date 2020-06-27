@@ -2,23 +2,25 @@ import { Player } from "../shared/model/player"
 
 export class ServerGame {
   players: Map<string, Player>
-  modifiedPlayerListener: (remove: boolean, player: string) => any
+  modifiedPlayerListener: (remove: boolean, id: string, name: string) => any
   updateLocationListener: (player: string, x: integer, y: integer) => any
 
-  constructor(modifiedPlayerListener: (remove: boolean, player: string) => any, updateLocationListener: (player: string, x: integer, y: integer) => any) {
+  constructor(modifiedPlayerListener: (remove: boolean, id: string, name: string) => any, updateLocationListener: (player: string, x: integer, y: integer) => any) {
     this.players = new Map()
     this.modifiedPlayerListener = modifiedPlayerListener
     this.updateLocationListener = updateLocationListener
   }
 
-  addPlayer(player: string): any {
-    this.players.set(player, new Player(player))
-    this.modifiedPlayerListener(false, player)
+  addPlayer(id: string, name: string): any {
+    this.players.set(id, new Player(id, name))
+    this.modifiedPlayerListener(false, id, name)
   }
 
-  removePlayer(player: string): any {
-    this.players.delete(player)
-    this.modifiedPlayerListener(true, player)
+  removePlayer(id: string): any {
+    if (this.players.has(id)) {
+      this.modifiedPlayerListener(true, id, this.players.get(id).getName())
+      this.players.delete(id)
+    }
   }
 
   getPlayers(): Player[] {

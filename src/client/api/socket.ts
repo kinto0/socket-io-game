@@ -23,4 +23,8 @@ export default class Socket {
   updatePos(x: integer, y: integer) {
     this.socket.send(encodeLocation(x, y))
   }
+
+  join(name: string) {
+    this.socket.emit("join", name)
+  }
 }

@@ -20,19 +20,27 @@ app.get("/", (req: any, res: any) => {
 
 io.on("connection", function (socket: any) {
   let player = new Player()
-  game.addPlayer(player.getId())
   socket.emit(EmitEvent.PLAYER_JOIN, player.getId())
-  socket.emit(EmitEvent.UPDATE_LOCATION, encodeLocations(game.getPlayers()))
+  let players = game.getPlayers()
+  players.forEach((player: Player) => {
+    console.log(player)
+    socket.emit(EmitEvent.MODIFIED_PLAYER, encodePlayerUpdate(false, player.getId(), player.getName()))
+  })
+  socket.emit(EmitEvent.UPDATE_LOCATION, encodeLocations(players))
 
   console.log("Client " + player.getId() + " connected!")
+
+  socket.on("join", function (name: string) {
+    game.addPlayer(player.getId(), name)
+
+    socket.on("message", function (data: string) {
+      game.updateLocation(player.getId(), ...decodeLocation(data));
+    })
+  });
 
   socket.on("disconnect", function (reason: any) {
     console.log(player.getId() + " disconnected")
     game.removePlayer(player.getId())
-  })
-
-  socket.on("message", function (data: string) {
-    game.updateLocation(player.getId(), ...decodeLocation(data));
   })
 })
 
@@ -41,11 +49,10 @@ http.listen(9001, function () {
 })
 
 function updateLocation(player: string, x: integer, y: integer) {
-  let p: Player = new Player(player)
-  p.setLocation(x, y)
+  let p: Player = new Player(player, null, x, y)
   io.emit(EmitEvent.UPDATE_LOCATION, encodeLocations([p]))
 }
 
-function updatePlayer(remove: boolean, player: string) {
-  io.emit(EmitEvent.MODIFIED_PLAYER, encodePlayerUpdate(remove, player))
+function updatePlayer(remove: boolean, id: string, name: string) {
+  io.emit(EmitEvent.MODIFIED_PLAYER, encodePlayerUpdate(remove, id, name))
 }
